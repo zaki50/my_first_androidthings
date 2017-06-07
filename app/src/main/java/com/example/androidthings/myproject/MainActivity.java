@@ -27,6 +27,7 @@ import com.google.android.things.contrib.driver.rainbowhat.RainbowHat;
 import com.google.android.things.pio.Gpio;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -57,12 +58,15 @@ public class MainActivity extends Activity {
     AlphanumericDisplay display;
     private boolean ledOn;
 
+    private boolean done;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
 
         handler = new Handler(getMainLooper());
+
         try {
             sensor = RainbowHat.openSensor();
             display = RainbowHat.openDisplay();
@@ -76,9 +80,16 @@ public class MainActivity extends Activity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // とりあえず5秒後に自動的に終了
+        handler.postDelayed(this::finish, TimeUnit.SECONDS.toMillis(5));
     }
 
     private void runAndReschedule() {
+        if (done) {
+            return;
+        }
+
         try {
             display.display(sensor.readTemperature());
 
@@ -95,5 +106,30 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+
+        done = true;
+
+        try {
+            led.setValue(false);
+            led.close();
+            led = null;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            display.clear();
+            display.close();
+            display = null;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            sensor.close();
+            sensor = null;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
