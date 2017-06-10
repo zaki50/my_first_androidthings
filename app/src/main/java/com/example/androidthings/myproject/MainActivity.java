@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
     private Gpio led;
 
     private Bmx280 sensor;
-    AlphanumericDisplay display;
+    private AlphanumericDisplay display;
     private boolean ledOn;
 
     private boolean done;
